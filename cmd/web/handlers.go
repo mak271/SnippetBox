@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
+	//"log"
 	"net/http"
 	"strconv"
 )
  
-func home(response http.ResponseWriter, request *http.Request) {
+func (app application) home(response http.ResponseWriter, request *http.Request) {
     if request.URL.Path != "/" {
         http.NotFound(response, request)
         return
@@ -28,8 +28,9 @@ func home(response http.ResponseWriter, request *http.Request) {
 	// ответ: 500 Internal Server Error (Внутренняя ошибка на сервере)
 	template, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Println(err.Error())
+		app.errorLog.Println(err.Error())
 		http.Error(response, "Internal Server Error", 500)
+		return
 	}
 
 	// Затем мы используем метод Execute() для записи содержимого
@@ -37,12 +38,12 @@ func home(response http.ResponseWriter, request *http.Request) {
 	// возможность отправки динамических данных в шаблон.
 	err = template.Execute(response, nil)
 	if err != nil {
-		log.Println(err.Error())
+		app.errorLog.Println(err.Error())
 		http.Error(response, "Internal Server Error", 500)
 	}
 }
  
-func showSnippet(w http.ResponseWriter, r *http.Request) {
+func (app application) showSnippet(w http.ResponseWriter, r *http.Request) {
     id, err := strconv.Atoi(r.URL.Query().Get("id"))
     if err != nil || id < 1 {
         http.NotFound(w, r)
@@ -52,7 +53,7 @@ func showSnippet(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Отображение определенной заметки с ID %d...", id)
 }
  
-func createSnippet(w http.ResponseWriter, r *http.Request) {
+func (app application) createSnippet(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodPost {
         w.Header().Set("Allow", http.MethodPost)
         http.Error(w, "Метод не дозволен", http.StatusMethodNotAllowed)
